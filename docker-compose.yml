@@ -1,14 +1,30 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: restaurant
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: restaurant
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U restaurant -d restaurant"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
   backend:
     build: ./app/backend
     ports:
       - "8000:8000"
     environment:
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
-      DATABASE_URL: sqlite:////data/orders.db
+      DATABASE_URL: postgresql+psycopg://restaurant:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/restaurant
       ALLOWED_ORIGINS: http://localhost:8080
-    volumes:
-      - backend-data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
@@ -27,4 +43,4 @@ services:
         condition: service_healthy
 
 volumes:
-  backend-data:
+  postgres-data:
