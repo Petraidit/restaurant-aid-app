@@ -1,64 +1,55 @@
-# Restaurant Aid — Phase 1 (Local App)
+# Restaurant Aid
 
-An order and booking platform for a local restaurant. FastAPI backend, React/Vite frontend.
+Orders and bookings, sorted. A restaurant ordering platform where customers browse a menu and place orders, and an admin manages items and order statuses.
 
-## Open it in VS Code
+## Stack
 
-1. Download and unzip `restaurant-aid-app.zip` anywhere on your computer.
-2. Open VS Code.
-3. File > Open Folder... > select the unzipped `order-platform` folder.
-4. VS Code will show `app/backend` and `app/frontend` in the sidebar.
-5. Install these VS Code extensions if you don't have them (search in the Extensions tab, Ctrl+Shift+X):
-   - Python (by Microsoft)
-   - ES7+ React/Redux/JS snippets (optional, nice to have)
-6. Open a terminal in VS Code: Terminal > New Terminal (or Ctrl+`).
+| Layer | Technology |
+|---|---|
+| Backend | FastAPI, SQLAlchemy, JWT authentication |
+| Frontend | React, Vite, served by nginx |
+| Database | PostgreSQL 16 |
+| Containers | Docker, Docker Compose (multi-stage builds, non-root user, health checks) |
+| Security | Trivy image scanning, pinned dependencies |
+| Automation | Bash and Python scripts, GitHub Actions CI/CD |
 
-You'll run the backend and frontend in two separate terminals, side by side.
+## Features
 
-## Backend (FastAPI)
+- Register and log in (the first registered user becomes admin)
+- Customers browse items, place orders and track status
+- Admin adds items, views all orders and updates statuses
 
-In a VS Code terminal:
+## Run it locally
 
-```bash
-cd app/backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn main:app --reload --port 8000
+Requires Docker with Compose.
+
+1. Create a `.env` file in the project root:
+```
+   SECRET_KEY=<run: openssl rand -hex 32>
+   POSTGRES_PASSWORD=<run: openssl rand -hex 24>
+```
+2. Start everything:
+```
+   docker compose up -d --build
+```
+3. Open http://localhost:8080 and register. The first account becomes admin.
+
+## Scripts
+
+See [scripts/README.md](scripts/README.md): `build-and-scan.sh` (build and security gate), `backup-db.sh` (verified Postgres backups), `healthcheck.py` (service checks).
+
+## Project layout
+
+```
+app/backend     FastAPI service
+app/frontend    React app
+scripts/        Build, backup and health-check automation
+docker-compose.yml
 ```
 
-Leave this terminal running. Check it worked: open http://localhost:8000/health in your browser — you should see `{"status":"ok"}`.
+## Security notes
 
-Run the automated tests any time:
-```bash
-pip install pytest httpx
-pytest test_main.py -v
-```
-
-## Frontend (React + Vite)
-
-Open a SECOND terminal in VS Code (click the `+` in the terminal panel):
-
-```bash
-cd app/frontend
-npm install
-npm run dev
-```
-
-Open http://localhost:5173 in your browser.
-
-## Using the app
-
-1. Register — the FIRST account created automatically becomes admin.
-2. As admin: add a few menu items.
-3. Log out, register a second (customer) account.
-4. As customer: place an order, watch it show under "Your orders".
-5. Log back in as admin: change the order's status, e.g. to "ready".
-
-## Notes
-
-- Backend uses SQLite (`orders.db`, a local file) — no database install needed for Phase 1.
-- Never commit a real `.env` file — `.env.example` is just a template.
-- `VITE_API_URL` env var controls what backend URL the frontend calls (defaults to `http://localhost:8000`).
-- If VS Code's Python extension asks you to select an interpreter, pick the one inside `app/backend/venv`.
+- Secrets live in `.env` and are never committed
+- Images are scanned with Trivy; fixable CRITICAL findings fail the build
+- Postgres is not exposed outside the Compose network
+- Containers run as a non-root user
