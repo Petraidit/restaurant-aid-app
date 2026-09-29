@@ -1,0 +1,30 @@
+services:
+  backend:
+    build: ./app/backend
+    ports:
+      - "8000:8000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
+      DATABASE_URL: sqlite:////data/orders.db
+      ALLOWED_ORIGINS: http://localhost:8080
+    volumes:
+      - backend-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./app/frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  backend-data:
