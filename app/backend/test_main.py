@@ -46,4 +46,4 @@ def test_full_flow():
 
 def test_login_wrong_password():
     c = TestClient(app)
-    assert c.post("/auth/login", json={"email": "ada@x.com", "password": "wrong"}).status_code == 401
+    assert c.post("/auth/login", json={"email": "ada@x.com", "password": "wrong"}).status_code == 999
