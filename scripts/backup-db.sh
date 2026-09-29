@@ -1,46 +1,33 @@
 #!/usr/bin/env bash
-# Back up the SQLite database from the Docker volume to ./backups/
+# Back up the Postgres database to ./backups/ and verify it by restoring into a scratch DB.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-VOLUME="restaurant-aid-app_backend-data"
 BACKUP_DIR="backups"
 KEEP=7
 STAMP="$(date +%Y%m%d-%H%M%S)"
-OUTFILE="orders-$STAMP.db"
+OUTFILE="$BACKUP_DIR/restaurant-$STAMP.sql.gz"
+SCRATCH="restore_check"
 
-if ! docker volume inspect "$VOLUME" > /dev/null 2>&1; then
-  echo "ERROR: volume $VOLUME not found. Run 'docker volume ls' and fix VOLUME." >&2
+if ! docker compose ps --status running --services | grep -qx postgres; then
+  echo "ERROR: postgres service is not running. Start it with: docker compose up -d postgres" >&2
   exit 1
 fi
 
 mkdir -p "$BACKUP_DIR"
 
-echo "==> Backing up to $BACKUP_DIR/$OUTFILE"
-docker run --rm \
-  -v "$VOLUME":/data:ro \
-  -v "$PWD/$BACKUP_DIR":/backup \
-  python:3.12-slim \
-  python -c "
-import sqlite3
-src = sqlite3.connect('file:/data/orders.db?mode=ro', uri=True)
-dst = sqlite3.connect('/backup/$OUTFILE')
-src.backup(dst)
-dst.close()
-src.close()
-"
+echo "==> Dumping to $OUTFILE"
+docker compose exec -T postgres pg_dump -U restaurant -d restaurant --no-owner | gzip > "$OUTFILE"
 
-echo "==> Verifying"
-docker run --rm -v "$PWD/$BACKUP_DIR":/backup:ro python:3.12-slim \
-  python -c "
-import sqlite3
-con = sqlite3.connect('/backup/$OUTFILE')
-print('integrity:', con.execute('PRAGMA integrity_check').fetchone()[0])
-print('users:', con.execute('SELECT COUNT(*) FROM users').fetchone()[0])
-"
+echo "==> Verifying by restoring into scratch database"
+docker compose exec -T postgres psql -U restaurant -d postgres -q -c "DROP DATABASE IF EXISTS $SCRATCH;" -c "CREATE DATABASE $SCRATCH;"
+gunzip -c "$OUTFILE" | docker compose exec -T postgres psql -U restaurant -d "$SCRATCH" -q -v ON_ERROR_STOP=1 > /dev/null
+echo -n "users restored: "
+docker compose exec -T postgres psql -U restaurant -d "$SCRATCH" -t -A -c "SELECT COUNT(*) FROM users;"
+docker compose exec -T postgres psql -U restaurant -d postgres -q -c "DROP DATABASE $SCRATCH;"
 
 echo "==> Pruning old backups (keeping $KEEP)"
-ls -1t "$BACKUP_DIR"/orders-*.db | tail -n +$((KEEP + 1)) | xargs -r rm --
+ls -1t "$BACKUP_DIR"/restaurant-*.sql.gz | tail -n +$((KEEP + 1)) | xargs -r rm --
 
-echo "Done: $BACKUP_DIR/$OUTFILE"
+echo "Done: $OUTFILE"
