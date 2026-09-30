@@ -79,6 +79,6 @@ jobs:
           sha="${GITHUB_SHA::7}"
           for svc in backend frontend; do
             image="$REGISTRY/restaurant-aid-$svc:$sha"
-            docker build -t "$image" "./app/$svc"
+            docker build --build-arg VITE_API_URL="${{ vars.API_URL }}" -t "$image" "./app/$svc"
             docker push "$image"
           done
