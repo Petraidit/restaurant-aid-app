@@ -155,7 +155,19 @@ function AdminView({ token }) {
 }
 
 export default function App() {
-  const [auth, setAuth] = useState(null)
+    const [auth, setAuthState] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem('auth')) || null
+    } catch {
+      return null
+    }
+  })
+
+  const setAuth = (value) => {
+    if (value) sessionStorage.setItem('auth', JSON.stringify(value))
+    else sessionStorage.removeItem('auth')
+    setAuthState(value)
+  }
 
   if (!auth) {
     return (
