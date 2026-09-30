@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: 382967312876.dkr.ecr.eu-west-1.amazonaws.com/restaurant-aid-frontend:1832b69
+          image: 382967312876.dkr.ecr.eu-west-1.amazonaws.com/restaurant-aid-frontend:0d6e4bf
           ports:
             - containerPort: 80
           readinessProbe:
