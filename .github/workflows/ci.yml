@@ -40,20 +40,14 @@ jobs:
       - name: Build images
         run: docker compose build
 
-      - name: Scan backend with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: restaurant-aid-app-backend:latest
-          scanners: vuln
-          severity: CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
-
-      - name: Scan frontend with Trivy
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: restaurant-aid-app-frontend:latest
-          scanners: vuln
-          severity: CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
+      - name: Trivy scan (fail on fixable CRITICAL)
+        run: |
+          for image in restaurant-aid-app-backend restaurant-aid-app-frontend; do
+            echo "==> Scanning $image"
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy:latest image \
+              --no-progress --scanners vuln \
+              --severity CRITICAL --ignore-unfixed --exit-code 1 \
+              "$image"
+          done
