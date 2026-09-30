@@ -19,6 +19,16 @@ Orders and bookings, sorted. A restaurant ordering platform where customers brow
 - Customers browse items, place orders and track status
 - Admin adds items, views all orders and updates statuses
 
+## Live demo
+
+- App: http://acfcf6be4e8264c11bae5a4b34fb1ad8-294768457.eu-west-1.elb.amazonaws.com
+- Hosted on Amazon EKS (Kubernetes 1.35, eu-west-1), images from Amazon ECR
+- Demo customer login: <email> / <password>
+
+## Delivery pipeline
+
+Push to `main` → GitHub Actions runs tests → builds images → Trivy security gate → publishes to ECR through OIDC (no stored AWS keys) → manifests in `k8s/` deploy to EKS.
+
 ## Run it locally
 
 Requires Docker with Compose.
