@@ -9,3 +9,9 @@ dist/
 .vscode/
 .DS_Store
 backups/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
