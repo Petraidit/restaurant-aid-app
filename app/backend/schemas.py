@@ -1,4 +1,5 @@
 import datetime as dt
+
 from pydantic import BaseModel, Field
 
 STATUSES = ["pending", "confirmed", "ready", "completed", "cancelled"]

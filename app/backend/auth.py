@@ -42,7 +42,7 @@ def current_user(
     try:
         payload = jwt.decode(creds.credentials, SECRET_KEY, algorithms=["HS256"])
     except jwt.PyJWTError:
-        raise HTTPException(401, "Session expired, please log in again")
+        raise HTTPException(401, "Session expired, please log in again") from None
     user = db.get(User, int(payload["sub"]))
     if user is None:
         raise HTTPException(401, "Account not found")
