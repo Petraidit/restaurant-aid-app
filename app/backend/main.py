@@ -9,6 +9,7 @@ import models
 import schemas
 from auth import admin_user, create_token, current_user, hash_password, verify_password
 from database import Base, engine, get_db
+from observability import setup_observability
 
 
 @asynccontextmanager
@@ -27,6 +28,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+setup_observability(app)
 
 
 def order_out(o: models.Order) -> schemas.OrderOut:

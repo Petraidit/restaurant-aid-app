@@ -5,3 +5,4 @@ pydantic==2.13.5
 pyjwt==2.15.1
 python-multipart==0.0.32
 psycopg[binary]==3.3.6
+prometheus-client==0.26.0
