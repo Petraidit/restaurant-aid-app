@@ -32,7 +32,7 @@ spec:
             - name: DATABASE_URL
               value: postgresql+psycopg://restaurant:$(POSTGRES_PASSWORD)@postgres:5432/restaurant
             - name: ALLOWED_ORIGINS
-              value: "*"
+              value: "http://acfcf6be4e8264c11bae5a4b34fb1ad8-294768457.eu-west-1.elb.amazonaws.com"
           readinessProbe:
             httpGet:
               path: /health
