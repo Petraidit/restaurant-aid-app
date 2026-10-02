@@ -63,9 +63,9 @@ module "eks" {
     workers = {
       instance_types = ["t3.small"]
 
-      desired_size   = 2
-      min_size       = 2
-      max_size       = 2
+      desired_size = 2
+      min_size     = 2
+      max_size     = 2
     }
   }
 }
