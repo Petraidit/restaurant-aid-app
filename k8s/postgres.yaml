@@ -48,6 +48,19 @@ spec:
               command: ["pg_isready", "-U", "restaurant", "-d", "restaurant"]
             initialDelaySeconds: 5
             periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "restaurant", "-d", "restaurant"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data

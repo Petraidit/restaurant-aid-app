@@ -119,33 +119,54 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-scan-push
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     permissions:
       id-token: write
       contents: read
     steps:
+      - uses: actions/checkout@v4
+
       - name: Configure AWS credentials (OIDC, deploy role)
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-
       - name: Connect to the cluster
         run: aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
 
-      - name: Roll out new images
-        id: rollout
+      - name: Record images currently running
+        id: prev
+        run: |
+          echo "backend=$(kubectl -n "$NAMESPACE" get deploy backend -o jsonpath='{.spec.template.spec.containers[0].image}')" >> "$GITHUB_OUTPUT"
+          echo "frontend=$(kubectl -n "$NAMESPACE" get deploy frontend -o jsonpath='{.spec.template.spec.containers[0].image}')" >> "$GITHUB_OUTPUT"
+
+
+      - name: Render manifests with this commit's image tag
         run: |
           sha="${GITHUB_SHA::7}"
-          account=$(aws sts get-caller-identity --query Account --output text)
-          registry="$account.dkr.ecr.$AWS_REGION.amazonaws.com"
-          kubectl -n "$NAMESPACE" set image deployment/backend backend="$registry/restaurant-aid-backend:$sha"
-          kubectl -n "$NAMESPACE" set image deployment/frontend frontend="$registry/restaurant-aid-frontend:$sha"
-          kubectl -n "$NAMESPACE" rollout status deployment/backend --timeout=180s
-          kubectl -n "$NAMESPACE" rollout status deployment/frontend --timeout=180s
+          mkdir -p rendered
+          for f in backend frontend availability; do
+            sed -E "s#(restaurant-aid-(backend|frontend)):[A-Za-z0-9._-]+#\1:${sha}#" "k8s/$f.yaml" > "rendered/$f.yaml"
+          done
+          grep -h "image:" rendered/*.yaml
 
-      - name: Roll back on failure
+      - name: Validate against the cluster (server dry run)
+        run: kubectl apply --dry-run=server -f rendered/availability.yaml -f rendered/backend.yaml -f rendered/frontend.yaml
+
+      - name: Apply manifests and wait for rollout
+        id: rollout
+        run: |
+          kubectl apply -f rendered/availability.yaml
+          kubectl apply -f rendered/backend.yaml
+          kubectl apply -f rendered/frontend.yaml
+          kubectl -n "$NAMESPACE" rollout status deployment/backend --timeout=240s
+          kubectl -n "$NAMESPACE" rollout status deployment/frontend --timeout=240s
+
+      - name: Restore previous images on failure
         if: failure() && steps.rollout.conclusion == 'failure'
         run: |
-          kubectl -n "$NAMESPACE" rollout undo deployment/backend
-          kubectl -n "$NAMESPACE" rollout undo deployment/frontend
+          kubectl -n "$NAMESPACE" set image deployment/backend backend="${{ steps.prev.outputs.backend }}"
+          kubectl -n "$NAMESPACE" set image deployment/frontend frontend="${{ steps.prev.outputs.frontend }}"

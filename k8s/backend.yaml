@@ -4,18 +4,29 @@ metadata:
   name: backend
   namespace: restaurant-aid
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   template:
     metadata:
       labels:
         app: backend
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: backend
       containers:
         - name: backend
-          image: 382967312876.dkr.ecr.eu-west-1.amazonaws.com/restaurant-aid-backend:de04b4b
+          image: 382967312876.dkr.ecr.eu-west-1.amazonaws.com/restaurant-aid-backend:44a350d
           ports:
             - containerPort: 8000
           env:
@@ -33,6 +44,17 @@ spec:
               value: postgresql+psycopg://restaurant:$(POSTGRES_PASSWORD)@postgres:5432/restaurant
             - name: ALLOWED_ORIGINS
               value: "http://acfcf6be4e8264c11bae5a4b34fb1ad8-294768457.eu-west-1.elb.amazonaws.com"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "10"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
           readinessProbe:
             httpGet:
               path: /health

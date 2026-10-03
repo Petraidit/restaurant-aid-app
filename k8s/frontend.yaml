@@ -4,20 +4,42 @@ metadata:
   name: frontend
   namespace: restaurant-aid
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   template:
     metadata:
       labels:
         app: frontend
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: frontend
       containers:
         - name: frontend
-          image: 382967312876.dkr.ecr.eu-west-1.amazonaws.com/restaurant-aid-frontend:fad430a
+          image: 382967312876.dkr.ecr.eu-west-1.amazonaws.com/restaurant-aid-frontend:44a350d
           ports:
             - containerPort: 80
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "10"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
           readinessProbe:
             httpGet:
               path: /
