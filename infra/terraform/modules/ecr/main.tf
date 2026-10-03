@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "app" {
-  for_each             = toset(var.ecr_repositories)
+  for_each             = toset(var.repositories)
   name                 = each.value
   image_tag_mutability = "IMMUTABLE"
 
@@ -8,18 +8,19 @@ resource "aws_ecr_repository" "app" {
   }
 }
 
-resource "aws_ecr_lifecycle_policy" "keep_last_10" {
+resource "aws_ecr_lifecycle_policy" "keep_last" {
   for_each   = aws_ecr_repository.app
   repository = each.value.name
 
   policy = jsonencode({
     rules = [{
+
       rulePriority = 1
-      description  = "Keep last 10 images"
+      description  = "Keep last ${var.keep_last_images} images"
       selection = {
         tagStatus   = "any"
         countType   = "imageCountMoreThan"
-        countNumber = 10
+        countNumber = var.keep_last_images
       }
       action = { type = "expire" }
     }]

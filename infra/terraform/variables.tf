@@ -3,14 +3,8 @@ variable "region" {
   default = "eu-west-1"
 }
 
-variable "github_repo" {
-  description = "GitHub repo allowed to push images, as OWNER/REPO"
-  type        = string
-  default     = "Petraidit/restaurant-aid-app"
-}
-
 variable "oidc_subject" {
-  description = "Exact sub claim the role trust policy must match"
+  description = "Exact sub claim the role trust policies must match (see terraform.tfvars.example)"
   type        = string
 }
 
@@ -23,3 +17,14 @@ variable "role_name" {
   type    = string
   default = "github-actions-ecr-push"
 }
+
+variable "cluster_name" {
+  type    = string
+  default = "restaurant-aid"
+}
+
+variable "k8s_namespace" {
+  type    = string
+  default = "restaurant-aid"
+}
+

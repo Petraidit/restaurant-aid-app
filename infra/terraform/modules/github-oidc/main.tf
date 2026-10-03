@@ -3,6 +3,7 @@ resource "aws_iam_openid_connect_provider" "github" {
   client_id_list = ["sts.amazonaws.com"]
 }
 
+
 data "aws_iam_policy_document" "trust" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -26,15 +27,15 @@ data "aws_iam_policy_document" "trust" {
   }
 }
 
-resource "aws_iam_role" "github_actions" {
-  name        = var.role_name
-  description = "Lets GitHub Actions push images to the restaurant-aid ECR repositories. Trusted only for Petraidit/restaurant-aid-app on the main branch."
-
+resource "aws_iam_role" "push" {
+  name               = var.role_name
+  description        = var.role_description
   assume_role_policy = data.aws_iam_policy_document.trust.json
 }
 
 data "aws_iam_policy_document" "ecr_push" {
   statement {
+
     actions   = ["ecr:GetAuthorizationToken"]
     resources = ["*"]
   }
@@ -48,12 +49,12 @@ data "aws_iam_policy_document" "ecr_push" {
       "ecr:PutImage",
       "ecr:BatchGetImage",
     ]
-    resources = [for r in aws_ecr_repository.app : r.arn]
+    resources = var.repository_arns
   }
 }
 
 resource "aws_iam_role_policy" "ecr_push" {
-  name   = "ecr-push-restaurant-aid"
-  role   = aws_iam_role.github_actions.id
+  name   = var.policy_name
+  role   = aws_iam_role.push.id
   policy = data.aws_iam_policy_document.ecr_push.json
 }

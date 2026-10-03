@@ -18,7 +18,7 @@ data "aws_availability_zones" "available" {
 
 locals {
   name = "restaurant-aid"
-  azs  = slice(data.aws_availability_zones.available.names, 0, 2)
+  azs  = slice(data.aws_availability_zones.available.names, 0, 3)
 }
 
 module "vpc" {
@@ -30,8 +30,8 @@ module "vpc" {
   azs  = local.azs
 
 
-  public_subnets  = ["10.0.0.0/24", "10.0.1.0/24"]
-  private_subnets = ["10.0.10.0/24", "10.0.11.0/24"]
+  public_subnets  = ["10.0.0.0/24", "10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets = ["10.0.10.0/24", "10.0.11.0/24", "10.0.12.0/24"]
 
   enable_nat_gateway = true
   single_nat_gateway = true
@@ -63,9 +63,9 @@ module "eks" {
     workers = {
       instance_types = ["t3.small"]
 
-      desired_size = 2
-      min_size     = 2
-      max_size     = 2
+      desired_size = 3
+      min_size     = 3
+      max_size     = 3
     }
   }
 }
