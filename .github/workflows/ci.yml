@@ -154,7 +154,7 @@ jobs:
           grep -h "image:" rendered/*.yaml
 
       - name: Validate against the cluster (server dry run)
-        run: kubectl apply --dry-run=server -f rendered/availability.yaml -f rendered/backend.yaml -f rendered/frontend.yaml
+        run: kubectl apply --dry-run=server -f rendered/availability.yaml -f rendered/backend.yaml -f rendered/frontend.yaml -f k8s/monitoring/
 
       - name: Apply manifests and wait for rollout
         id: rollout
@@ -164,6 +164,13 @@ jobs:
           kubectl apply -f rendered/frontend.yaml
           kubectl -n "$NAMESPACE" rollout status deployment/backend --timeout=240s
           kubectl -n "$NAMESPACE" rollout status deployment/frontend --timeout=240s
+
+      - name: Deploy monitoring (Prometheus and Grafana)
+        run: |
+          kubectl -n "$NAMESPACE" create configmap grafana-dashboards --from-file=restaurant-aid.json=observability/dashboard.json --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f k8s/monitoring/
+          kubectl -n "$NAMESPACE" rollout status deployment/prometheus --timeout=180s
+          kubectl -n "$NAMESPACE" rollout status deployment/grafana --timeout=180s
 
       - name: Restore previous images on failure
         if: failure() && steps.rollout.conclusion == 'failure'
