@@ -36,8 +36,8 @@ module "vpc" {
   enable_nat_gateway = true
   single_nat_gateway = true
 
-  public_subnet_tags  = { "kubernetes.io/role/elb" = 1 }
-  private_subnet_tags = { "kubernetes.io/role/internal-elb" = 1 }
+  public_subnet_tags  = { "kubernetes.io/role/elb" = 1, "kubernetes.io/cluster/${local.name}" = "shared" }
+  private_subnet_tags = { "kubernetes.io/role/internal-elb" = 1, "kubernetes.io/cluster/${local.name}" = "shared" }
 }
 
 module "eks" {
@@ -52,6 +52,17 @@ module "eks" {
 
   cluster_endpoint_public_access           = true
   enable_cluster_creator_admin_permissions = true
+
+  node_security_group_additional_rules = {
+    ingress_cluster_metrics_server = {
+      description                   = "Control plane to metrics-server"
+      protocol                      = "tcp"
+      from_port                     = 10251
+      to_port                       = 10251
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
+  }
 
   cluster_addons = {
     vpc-cni = {
