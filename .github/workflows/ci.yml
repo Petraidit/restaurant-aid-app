@@ -68,6 +68,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check API_URL variable
+        run: |
+          echo "API_URL is: ${{ vars.API_URL }}"
+          case "${{ vars.API_URL }}" in
+            http://*|https://*) ;;
+            *) echo "::error::API_URL must start with http:// or https://"; exit 1 ;;
+          esac
+
       - name: Build images
         run: |
           docker build -t restaurant-aid-backend:ci ./app/backend
@@ -171,6 +179,17 @@ jobs:
           kubectl apply -f k8s/monitoring/
           kubectl -n "$NAMESPACE" rollout status deployment/prometheus --timeout=180s
           kubectl -n "$NAMESPACE" rollout status deployment/grafana --timeout=180s
+
+      - name: Verify frontend points at this cluster's backend
+        run: |
+          be=$(kubectl -n "$NAMESPACE" get svc backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "backend load balancer: $be"
+          found=$(kubectl -n "$NAMESPACE" exec deploy/frontend -- sh -c "grep -rhoF 'http://$be' /usr/share/nginx/html | head -1" || true)
+          if [ -z "$found" ]; then
+            echo "::error::The frontend was built with an API_URL that does not match http://$be. Fix the API_URL repository variable, then push a new commit."
+            exit 1
+          fi
+          echo "frontend contains $found"
 
       - name: Restore previous images on failure
         if: failure() && steps.rollout.conclusion == 'failure' && steps.prev.outputs.backend != ''
