@@ -10,7 +10,7 @@ permissions:
 
 env:
   AWS_REGION: eu-west-1
-  CLUSTER_NAME: restaurant-aid
+  CLUSTER_NAME: restaurant-aid-tf
   NAMESPACE: restaurant-aid
 
 jobs:
@@ -140,8 +140,8 @@ jobs:
       - name: Record images currently running
         id: prev
         run: |
-          echo "backend=$(kubectl -n "$NAMESPACE" get deploy backend -o jsonpath='{.spec.template.spec.containers[0].image}')" >> "$GITHUB_OUTPUT"
-          echo "frontend=$(kubectl -n "$NAMESPACE" get deploy frontend -o jsonpath='{.spec.template.spec.containers[0].image}')" >> "$GITHUB_OUTPUT"
+          echo "backend=$(kubectl -n "$NAMESPACE" get deploy backend -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+          echo "frontend=$(kubectl -n "$NAMESPACE" get deploy frontend -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
 
 
       - name: Render manifests with this commit's image tag
@@ -173,7 +173,7 @@ jobs:
           kubectl -n "$NAMESPACE" rollout status deployment/grafana --timeout=180s
 
       - name: Restore previous images on failure
-        if: failure() && steps.rollout.conclusion == 'failure'
+        if: failure() && steps.rollout.conclusion == 'failure' && steps.prev.outputs.backend != ''
         run: |
           kubectl -n "$NAMESPACE" set image deployment/backend backend="${{ steps.prev.outputs.backend }}"
           kubectl -n "$NAMESPACE" set image deployment/frontend frontend="${{ steps.prev.outputs.frontend }}"

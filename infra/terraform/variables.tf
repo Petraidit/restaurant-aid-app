@@ -20,7 +20,7 @@ variable "role_name" {
 
 variable "cluster_name" {
   type    = string
-  default = "restaurant-aid"
+  default = "restaurant-aid-tf"
 }
 
 variable "k8s_namespace" {
