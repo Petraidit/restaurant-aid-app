@@ -17,7 +17,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  name = "restaurant-aid"
+  name = var.cluster_name
   azs  = slice(data.aws_availability_zones.available.names, 0, 3)
 }
 
@@ -54,8 +54,23 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   cluster_addons = {
+    vpc-cni = {
+      before_compute              = true
+      resolve_conflicts_on_create = "OVERWRITE"
+    }
+    kube-proxy = {
+      resolve_conflicts_on_create = "OVERWRITE"
+    }
+    coredns = {
+
+      resolve_conflicts_on_create = "OVERWRITE"
+    }
+    metrics-server = {
+      resolve_conflicts_on_create = "OVERWRITE"
+    }
     aws-ebs-csi-driver = {
-      service_account_role_arn = module.ebs_csi_irsa.iam_role_arn
+      service_account_role_arn    = module.ebs_csi_irsa.iam_role_arn
+      resolve_conflicts_on_create = "OVERWRITE"
     }
   }
 
@@ -87,4 +102,8 @@ module "ebs_csi_irsa" {
 
 output "cluster_name" {
   value = module.eks.cluster_name
+}
+
+output "configure_kubectl" {
+  value = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region eu-west-1"
 }
