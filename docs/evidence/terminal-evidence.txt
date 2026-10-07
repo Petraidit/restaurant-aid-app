@@ -1,0 +1,65 @@
+Captured: 2026-10-07T02:29:34Z
+
+== Nodes and zones
+NAME                                        STATUS   ROLES    AGE    VERSION               ZONE         INSTANCE-TYPE
+ip-10-0-10-78.eu-west-1.compute.internal    Ready    <none>   3d2h   v1.35.8-eks-3b4a6ca   eu-west-1a   t3.small
+ip-10-0-11-70.eu-west-1.compute.internal    Ready    <none>   3d2h   v1.35.8-eks-3b4a6ca   eu-west-1b   t3.small
+ip-10-0-12-149.eu-west-1.compute.internal   Ready    <none>   3d2h   v1.35.8-eks-3b4a6ca   eu-west-1c   t3.small
+
+== Deployments and images
+NAME                         READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS   IMAGES                                                                         SELECTOR
+deployment.apps/backend      2/2     2            2           3d1h   backend      382967312876.dkr.ecr.eu-west-1.amazonaws.com/restaurant-aid-backend:88bc3ab    app=backend
+deployment.apps/frontend     2/2     2            2           3d1h   frontend     382967312876.dkr.ecr.eu-west-1.amazonaws.com/restaurant-aid-frontend:88bc3ab   app=frontend
+deployment.apps/grafana      1/1     1            1           3d1h   grafana      grafana/grafana:12.1.0                                                         app=grafana
+deployment.apps/prometheus   1/1     1            1           3d1h   prometheus   prom/prometheus:v3.5.0                                                         app=prometheus
+
+NAME                        READY   AGE    CONTAINERS   IMAGES
+statefulset.apps/postgres   1/1     3d1h   postgres     postgres:16-alpine
+
+== Pods and nodes
+NAME                          READY   STATUS    RESTARTS   AGE    IP            NODE                                        NOMINATED NODE   READINESS GATES
+backend-79ddbf4cf6-p5dln      1/1     Running   0          4h8m   10.0.10.246   ip-10-0-10-78.eu-west-1.compute.internal    <none>           <none>
+backend-79ddbf4cf6-tgf94      1/1     Running   0          2d9h   10.0.12.83    ip-10-0-12-149.eu-west-1.compute.internal   <none>           <none>
+frontend-d4cf56c67-6c95x      1/1     Running   0          2d9h   10.0.11.118   ip-10-0-11-70.eu-west-1.compute.internal    <none>           <none>
+frontend-d4cf56c67-j7dvn      1/1     Running   0          2d9h   10.0.12.28    ip-10-0-12-149.eu-west-1.compute.internal   <none>           <none>
+grafana-7765b7dd6b-x9jwg      1/1     Running   0          3d1h   10.0.10.103   ip-10-0-10-78.eu-west-1.compute.internal    <none>           <none>
+postgres-0                    1/1     Running   0          3d1h   10.0.12.87    ip-10-0-12-149.eu-west-1.compute.internal   <none>           <none>
+prometheus-6884f457b4-bdngv   1/1     Running   0          3d1h   10.0.12.93    ip-10-0-12-149.eu-west-1.compute.internal   <none>           <none>
+
+== Autoscalers and disruption budgets
+NAME                                           REFERENCE             TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/backend    Deployment/backend    cpu: 6%/70%    2         3         2          3d1h
+horizontalpodautoscaler.autoscaling/frontend   Deployment/frontend   cpu: 10%/70%   2         3         2          3d1h
+
+NAME                                  MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+poddisruptionbudget.policy/backend    1               N/A               1                     3d1h
+poddisruptionbudget.policy/frontend   1               N/A               1                     3d1h
+
+== Resource use
+NAME                                        CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+ip-10-0-10-78.eu-west-1.compute.internal    45m          2%       911Mi           63%         
+ip-10-0-11-70.eu-west-1.compute.internal    64m          3%       821Mi           57%         
+ip-10-0-12-149.eu-west-1.compute.internal   65m          3%       872Mi           60%         
+
+== Prometheus targets
+backend http://10.0.10.246:8000/metrics up
+backend http://10.0.12.83:8000/metrics up
+prometheus http://localhost:9090/metrics up
+
+== Alert rules
+BackendDown inactive ok
+BackendInstanceDown inactive ok
+HighErrorRate inactive ok
+HighLatencyP95 inactive ok
+
+== Structured log lines (newest 3)
+Found 2 pods, using pod/backend-79ddbf4cf6-tgf94
+{"ts": "2026-10-07T02:30:11.201416+00:00", "level": "INFO", "logger": "restaurant_aid.access", "message": "request", "method": "GET", "path": "/.env.production", "status": 404, "duration_ms": 0.5, "request_id": "751c178c5bbb4779a2f7f57a955ee588"}
+{"ts": "2026-10-07T02:30:14.088181+00:00", "level": "INFO", "logger": "restaurant_aid.access", "message": "request", "method": "GET", "path": "/phpinfo.php", "status": 404, "duration_ms": 0.3, "request_id": "81382b75bd5c4070b7727ce0086c5894"}
+{"ts": "2026-10-07T02:30:14.463361+00:00", "level": "INFO", "logger": "restaurant_aid.access", "message": "request", "method": "GET", "path": "/server-status", "status": 404, "duration_ms": 0.3, "request_id": "883900f889604a8695270c99ad7ca318"}
+
+== Terraform plan: infra/terraform
+No changes. Your infrastructure matches the configuration.
+
+== Terraform plan: infra/terraform/cluster
+No changes. Your infrastructure matches the configuration.
