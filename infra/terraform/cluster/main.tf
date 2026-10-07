@@ -23,7 +23,7 @@ locals {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
+  version = "5.21.0"
 
   name = local.name
   cidr = "10.0.0.0/16"
@@ -42,7 +42,7 @@ module "vpc" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.31"
+  version = "20.37.2"
 
   cluster_name    = local.name
   cluster_version = "1.35"
@@ -106,7 +106,7 @@ module "eks" {
 
 module "ebs_csi_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.0"
+  version = "5.60.0"
 
   role_name             = "${local.name}-ebs-csi"
   attach_ebs_csi_policy = true
