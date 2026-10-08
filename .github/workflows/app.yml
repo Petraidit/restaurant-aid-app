@@ -155,7 +155,7 @@ jobs:
 
   deploy:
     needs: build-scan-push
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.DEPLOY_ENABLED != 'false'
     runs-on: ubuntu-latest
     concurrency:
       group: deploy-production

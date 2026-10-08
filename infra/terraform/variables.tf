@@ -28,3 +28,9 @@ variable "k8s_namespace" {
   default = "restaurant-aid"
 }
 
+
+variable "enable_deploy_role" {
+  description = "Create the pipeline deploy role and its access to the cluster. Turn off while the cluster does not exist."
+  type        = bool
+  default     = true
+}

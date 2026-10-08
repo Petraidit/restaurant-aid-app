@@ -11,6 +11,7 @@ module "github_oidc" {
 }
 
 module "eks_deploy_role" {
+  count             = var.enable_deploy_role ? 1 : 0
   source            = "./modules/eks-deploy-role"
   cluster_name      = var.cluster_name
   namespace         = var.k8s_namespace
