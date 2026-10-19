@@ -58,10 +58,18 @@ kind: Service
 metadata:
   name: frontend
   namespace: restaurant-aid
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:eu-west-1:382967312876:certificate/5657b72d-6bed-495f-9e6a-1c7e4bce0595
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
 spec:
   type: LoadBalancer
   selector:
     app: frontend
   ports:
-    - port: 80
+    - name: http
+      port: 80
+      targetPort: 80
+    - name: https
+      port: 443
       targetPort: 80
