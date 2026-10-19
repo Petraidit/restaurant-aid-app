@@ -45,3 +45,8 @@ moved {
   from = aws_eks_access_policy_association.github_deploy
   to   = module.eks_deploy_role.aws_eks_access_policy_association.deploy
 }
+
+moved {
+  from = module.eks_deploy_role
+  to   = module.eks_deploy_role[0]
+}

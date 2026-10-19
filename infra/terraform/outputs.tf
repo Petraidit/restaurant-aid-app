@@ -8,5 +8,5 @@ output "github_actions_role_arn" {
 
 
 output "github_deploy_role_arn" {
-  value = module.eks_deploy_role.role_arn
+  value = try(module.eks_deploy_role[0].role_arn, null)
 }
