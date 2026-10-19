@@ -5,13 +5,11 @@ set -euo pipefail
 
 check_api_url() {
   echo "API_URL is: ${API_URL:-<empty>}"
-  case "${API_URL:-}" in
-    http://* | https://*) ;;
-    *)
-      echo "::error::API_URL must start with http:// or https://"
-      exit 1
-      ;;
-  esac
+  local want="${EXPECTED_API_URL:-https://api.restaurantaid.name.ng}"
+  if [ "${API_URL:-}" != "$want" ]; then
+    echo "::error::API_URL must be $want (got: ${API_URL:-<empty>})"
+    exit 1
+  fi
 }
 
 push_images() {
