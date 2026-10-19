@@ -5,5 +5,6 @@ resource "aws_acm_certificate" "this" {
 
   lifecycle {
     create_before_destroy = true
+    prevent_destroy       = true
   }
 }
