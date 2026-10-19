@@ -200,8 +200,11 @@ jobs:
       - name: Deploy monitoring (Prometheus and Grafana)
         run: bash scripts/ci/deploy.sh monitoring
 
-      - name: Verify the frontend points at this cluster's backend
+      - name: Verify the frontend was built with the API address
         run: bash scripts/ci/deploy.sh verify-frontend
+
+      - name: Check the DNS records match the load balancers
+        run: bash scripts/ci/deploy.sh verify-dns
 
       - name: Restore the previous images on failure
         if: failure() && steps.rollout.conclusion == 'failure'

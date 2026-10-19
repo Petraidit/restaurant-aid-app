@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deployment steps, kept in one place so the workflow reads as named steps.
-# Usage: deploy.sh record-images | render | dry-run | apply | monitoring | verify-frontend | restore
+# Usage: deploy.sh record-images | render | dry-run | apply | monitoring | verify-frontend | verify-dns | restore
 set -euo pipefail
 
 NS="${NAMESPACE:-restaurant-aid}"
@@ -49,17 +49,40 @@ monitoring() {
 }
 
 verify_frontend() {
-  local be found
-  be=$(kubectl -n "$NS" get svc backend \
-    -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-  echo "backend load balancer: $be"
+  local want="${EXPECTED_API_URL:-https://api.restaurantaid.name.ng}" found
   found=$(kubectl -n "$NS" exec deploy/frontend -- \
-    sh -c "grep -rhoF 'http://$be' /usr/share/nginx/html | head -1" || true)
+    sh -c "grep -rhoF '$want' /usr/share/nginx/html | head -1" || true)
   if [ -z "$found" ]; then
-    echo "::error::The frontend was built with an API_URL that does not match http://$be. Fix the API_URL repository variable, then push a new commit."
+    echo "::error::The frontend was not built with $want. Fix the API_URL repository variable, then push a new commit."
     exit 1
   fi
   echo "frontend contains $found"
+}
+
+verify_dns() {
+  local zone="restaurantaid.name.ng" pair name svc host got bad=0
+  for pair in app:frontend api:backend grafana:grafana; do
+    name="${pair%%:*}"
+    svc="${pair##*:}"
+    host=$(kubectl -n "$NS" get svc "$svc" \
+      -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+    got=$(curl -fsS -H 'accept: application/dns-json' \
+      "https://dns.google/resolve?name=${name}.${zone}&type=CNAME" |
+      jq -r '[.Answer[]? | select(.type==5) | .data][0] // ""' || true)
+    got="${got%.}"
+    if [ -z "$host" ]; then
+      echo "::warning::${svc} has no load balancer hostname yet"
+      bad=1
+    elif [ "$got" != "$host" ]; then
+      echo "::warning::Create at Truehost: CNAME  ${name}  ->  ${host}   (currently: ${got:-none})"
+      bad=1
+    else
+      echo "${name}.${zone} -> ${host} OK"
+    fi
+  done
+  if [ "$bad" -eq 1 ]; then
+    echo "DNS does not match the current load balancers yet. Add or update the records above."
+  fi
 }
 
 restore() {
@@ -78,9 +101,10 @@ case "${1:-}" in
   apply) apply_app ;;
   monitoring) monitoring ;;
   verify-frontend) verify_frontend ;;
+  verify-dns) verify_dns ;;
   restore) restore ;;
   *)
-    echo "usage: deploy.sh record-images|render|dry-run|apply|monitoring|verify-frontend|restore" >&2
+    echo "usage: deploy.sh record-images|render|dry-run|apply|monitoring|verify-frontend|verify-dns|restore" >&2
     exit 2
     ;;
 esac

@@ -53,6 +53,14 @@ spec:
               value: "false"
             - name: GF_ANALYTICS_REPORTING_ENABLED
               value: "false"
+            - name: GF_SERVER_ROOT_URL
+              value: https://grafana.restaurantaid.name.ng
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Viewer
+            - name: GF_SECURITY_COOKIE_SECURE
+              value: "true"
           ports:
             - containerPort: 3000
           resources:
@@ -110,9 +118,15 @@ kind: Service
 metadata:
   name: grafana
   namespace: restaurant-aid
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:eu-west-1:382967312876:certificate/5657b72d-6bed-495f-9e6a-1c7e4bce0595
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
 spec:
+  type: LoadBalancer
   selector:
     app: grafana
   ports:
-    - port: 3000
+    - name: https
+      port: 443
       targetPort: 3000

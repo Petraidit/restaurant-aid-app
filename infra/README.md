@@ -6,6 +6,7 @@ Everything that runs is defined in this repository.
 - `modules/ecr`: ECR repositories (immutable tags, scan on push, keep last 10).
 - `modules/github-oidc`: GitHub OIDC provider and the push role the pipeline uses to publish images.
 - `modules/eks-deploy-role`: deploy role, restricted to the `restaurant-aid` namespace through an EKS access entry.
+- `modules/acm-certificate`: ACM certificate for `restaurantaid.name.ng` and `*.restaurantaid.name.ng`, DNS-validated at Truehost. Protected with `prevent_destroy`. The validation CNAME must stay in place so ACM can renew it.
 - `moved.tf`: records the move of the original flat resources into modules. These resources were first created by hand and imported into state.
 
 ## Terraform cluster definition (`terraform/cluster/`): validated and planned, not applied

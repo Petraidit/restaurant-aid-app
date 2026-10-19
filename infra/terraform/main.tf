@@ -18,3 +18,9 @@ module "eks_deploy_role" {
   oidc_provider_arn = module.github_oidc.provider_arn
   oidc_subject      = var.oidc_subject
 }
+
+module "certificate" {
+  source                    = "./modules/acm-certificate"
+  domain_name               = var.domain_name
+  subject_alternative_names = ["*.${var.domain_name}"]
+}
