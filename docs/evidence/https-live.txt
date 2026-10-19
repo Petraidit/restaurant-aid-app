@@ -1,0 +1,26 @@
+Mon Oct 19 23:44:47 WAT 2026
+NAME                              READY   STATUS    RESTARTS   AGE
+pod/backend-66c684dbcb-lkv2d      1/1     Running   0          13m
+pod/backend-66c684dbcb-qcjjz      1/1     Running   0          13m
+pod/frontend-64959c9746-b2bfz     1/1     Running   0          13m
+pod/frontend-64959c9746-mqd5v     1/1     Running   0          13m
+pod/grafana-6b58998bf9-rhsqb      1/1     Running   0          13m
+pod/postgres-0                    1/1     Running   0          23m
+pod/prometheus-6884f457b4-4bkbq   1/1     Running   0          13m
+
+NAME                   TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)                      AGE
+service/backend        LoadBalancer   172.20.57.79     ad371eacaf62f4afc9302fd6fbe4bae4-2047642912.eu-west-1.elb.amazonaws.com   443:31088/TCP                13m
+service/backend-pods   ClusterIP      None             <none>                                                                    8000/TCP                     13m
+service/frontend       LoadBalancer   172.20.49.154    aa3a2d534f7424e6b924182b9f7267cb-250516988.eu-west-1.elb.amazonaws.com    80:30661/TCP,443:30872/TCP   13m
+service/grafana        LoadBalancer   172.20.13.233    a661e3c3bde954f80b3d1e6b58f2627f-1115964470.eu-west-1.elb.amazonaws.com   443:30734/TCP                13m
+service/postgres       ClusterIP      None             <none>                                                                    5432/TCP                     23m
+service/prometheus     ClusterIP      172.20.242.151   <none>                                                                    9090/TCP                     13m
+app: aa3a2d534f7424e6b924182b9f7267cb-250516988.eu-west-1.elb.amazonaws.com.
+api: ad371eacaf62f4afc9302fd6fbe4bae4-2047642912.eu-west-1.elb.amazonaws.com.
+grafana: a661e3c3bde954f80b3d1e6b58f2627f-1115964470.eu-west-1.elb.amazonaws.com.
+HTTP/1.1 301 Moved Permanently
+Content-Length: 169
+Content-Type: text/html
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Content-Length: 698
