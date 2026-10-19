@@ -34,3 +34,9 @@ variable "enable_deploy_role" {
   type        = bool
   default     = true
 }
+
+variable "domain_name" {
+  description = "Domain the app is served from"
+  type        = string
+  default     = "restaurantaid.name.ng"
+}
