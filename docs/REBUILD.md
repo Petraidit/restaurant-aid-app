@@ -80,7 +80,11 @@ How to bring the system up from nothing. There are two layers.
 ## Tear down
 
 1. Set `DEPLOY_ENABLED` to `false` in the repo variables.
-2. Back up the database: `bash scripts/backup-db.sh`
+2. Back up the database (the cluster has no docker compose, so use kubectl):
+
+       kubectl -n restaurant-aid exec postgres-0 -- \
+         pg_dump -U restaurant -d restaurant --no-owner \
+         > backups/k8s-live-$(date +%F-%H%M).sql
 3. Delete the namespace, so Kubernetes removes the AWS load balancers.
    If they are left behind they block the VPC from being destroyed:
 
