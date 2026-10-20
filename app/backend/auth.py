@@ -12,7 +12,9 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-secret-change-me")
+SECRET_KEY = os.environ.get("SECRET_KEY", "")
+if len(SECRET_KEY) < 16:
+    raise RuntimeError("SECRET_KEY must be set to a random string of at least 16 characters")
 bearer = HTTPBearer(auto_error=False)
 
 

@@ -16,3 +16,6 @@ backups/
 *.tfstate.*
 crash.log
 *.tfplan
+
+# Terraform plan files (can contain resolved secrets)
+tfplan
