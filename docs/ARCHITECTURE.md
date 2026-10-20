@@ -26,7 +26,6 @@ Restaurant Aid is a restaurant ordering platform: customers browse a menu and pl
 - Three nodes across eu-west-1a, 1b and 1c. Frontend and backend run 2 replicas each, with a zone topology spread (preferred, not enforced).
 - Readiness and liveness probes on every workload, so failed pods are restarted and unready pods receive no traffic.
 - Horizontal Pod Autoscalers (2 to 3 replicas at 70% CPU, using metrics-server), PodDisruptionBudgets (minAvailable 1), resource requests and limits, rolling updates with maxUnavailable 0, and a 10 second `preStop` delay.
-- Test, run on the live cluster: while a backend pod was deleted, 120 requests sent from inside the cluster all returned 200, and 60 requests through the public load balancer all returned 200.
 - Applying a change to Postgres restarts its single pod. When I first did this, the API returned errors for roughly 10 to 15 seconds.
 
 ### 3. CI/CD automation
@@ -55,7 +54,7 @@ A separate infra pipeline (`infra.yml`) runs `terraform fmt -check -recursive` o
 9. **Hardening verified by scanning:** Trivy flagged Deployments that had a container-level security context but no pod-level one. Adding both cleared the findings, and the change went out through the normal pipeline with the rollout guards in place.
 
 ## Evidence
-Screenshots and captured output are in `docs/evidence/`: the green pipeline run (including the Trivy manifest scan), `terraform plan` with no changes for both Terraform directories, nodes across zones, pods with autoscalers and budgets, the pod-kill tests, the container security context, JSON logs and metrics, Prometheus targets and alerts, the Grafana dashboard, and the live HTTPS site.
+Screenshots and captured output are in `docs/evidence/`: the green pipeline run (including the Trivy manifest scan), `terraform plan` with no changes for both Terraform directories, nodes across zones, pods with autoscalers and budgets, the container security context, JSON logs and metrics, Prometheus targets and alerts, the Grafana dashboard, and the live HTTPS site.
 
 ## Limitations
 - Postgres is a single pod on a single-zone disk; production would use RDS Multi-AZ.
