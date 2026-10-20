@@ -20,11 +20,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Restaurant Aid API", lifespan=lifespan)
 
-# In production, replace "*" with your real frontend domain.
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*")
+# Comma-separated list of allowed origins. Empty means no cross-origin access.
+ALLOWED_ORIGINS = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[ALLOWED_ORIGINS] if ALLOWED_ORIGINS != "*" else ["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -1,0 +1,18 @@
+# Accepted until after the review. Each entry expires so it gets revisited.
+misconfigurations:
+  - id: KSV-0118
+    paths:
+      - "postgres.yaml"
+      - "monitoring/*.yaml"
+      - "**/postgres.yaml"
+      - "**/monitoring/*.yaml"
+    statement: "Postgres, Prometheus and Grafana still use the default security context. Changing the Postgres StatefulSet restarts the database, so this is deferred until after the review."
+    expired_at: 2026-12-31
+  - id: KSV-0014
+    paths:
+      - "postgres.yaml"
+      - "monitoring/*.yaml"
+      - "**/postgres.yaml"
+      - "**/monitoring/*.yaml"
+    statement: "Read-only root filesystem needs per-workload writable mounts (Postgres data and run dirs, Grafana and Prometheus storage). Deferred with KSV-0118."
+    expired_at: 2026-12-31
