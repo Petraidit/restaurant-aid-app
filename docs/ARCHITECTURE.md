@@ -36,6 +36,8 @@ Every push runs four jobs:
 - **build-scan-push:** checks the `API_URL` variable, builds both images once, scans them with Trivy (fixable CRITICAL findings fail the build), and pushes them to ECR tagged with the commit SHA, using GitHub OIDC with no stored AWS keys. The image that is scanned is the image that is deployed.
 - **deploy (main only):** a namespace-scoped role renders the manifests with the new tag, runs a server-side dry run, applies them, waits for the rollouts, deploys monitoring, verifies that the running frontend points at this cluster's backend, and checks that the DNS records match the load balancers. If the rollout fails, a step restores the previous images.
 
+A separate infra pipeline (`infra.yml`) runs `terraform fmt -check -recursive` on changes under `infra/`.
+
 ### 4. Observability and logging
 - The backend logs one JSON line per request (method, path, status, duration, request ID).
 - `/metrics` exposes request counts and latency histograms. Prometheus scrapes both backend pods through DNS service discovery on a headless Service.
